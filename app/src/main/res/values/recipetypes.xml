@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="recipe_types">
+        <item>All</item>
+        <item>Asian Cuisine</item>
+        <item>Western Cuisine</item>
+        <item>Indian Cuisine</item>
+        <item>Italian Cuisine</item>
+        <item>Vegan Cuisine</item>
+    </string-array>
+
+</resources>
