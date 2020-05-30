@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/gradient_background"
+    tools:context=".UpdateActivity">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/darkpink">
+    </androidx.appcompat.widget.Toolbar>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/toolbar">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/updaterecipe_image"
+                android:layout_width="match_parent"
+                android:scaleType="fitCenter"
+                android:layout_height="186dp"
+                android:background="@color/white"
+                android:src="@mipmap/uploadimage" />
+
+            <Button
+                android:id="@+id/button_chooseimageupdate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Choose Image"
+                android:layout_marginTop="10dp"
+                android:layout_gravity="center_horizontal" />
+
+            <EditText
+                android:id="@+id/updaterecipe_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="50dp"
+                android:hint="Enter Recipe Name"/>
+
+            <EditText
+                android:id = "@+id/updaterecipe_category"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter Recipe Category"/>
+
+            <EditText
+                android:id="@+id/updaterecipe_ingredients"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:hint="Enter Ingredients"/>
+
+
+            <EditText
+                android:id="@+id/updaterecipe_steps"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:hint="Enter Steps"/>
+
+
+            <Button
+                android:id="@+id/saveButtonupdate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Save"
+                android:layout_marginTop="40dp"
+                android:layout_gravity="center_horizontal" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+
+</RelativeLayout>

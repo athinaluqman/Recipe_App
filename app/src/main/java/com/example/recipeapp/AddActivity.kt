@@ -48,7 +48,6 @@ class AddActivity : AppCompatActivity (){
     lateinit var ref: DatabaseReference
     lateinit var recipes: Recipes
     lateinit var imageUrl: String
-    lateinit var progressDialog: ProgressDialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -97,9 +96,6 @@ class AddActivity : AppCompatActivity (){
             val newSteps: String = newSteps.getText().toString().trim()
             var newImage = newImage.toString()
 
-              /*val uploadid: String = databaseReference.push().key
-              databaseReference.child(uploadid).setValue(upload)*/
-
             uploadImage()
 
             val id: String ?= databaseReference.push().key
@@ -113,28 +109,6 @@ class AddActivity : AppCompatActivity (){
         }
 
     }
-
-/*
-    fun saveData(){
-
-        newTitle = recipestitle.text.toString().trim()
-        newDescription = recipesdescrip.text.toString().trim()
-
-        if (!TextUtils.isEmpty(newTitle)){
-
-            */
-/*val id = databaseReference.push().key
-            val recipes = Recipes(id, newTitle, newDescription)
-            databaseReference.child("Recipes").setValue(recipes)*//*
-
-
-            Toast.makeText(this,  "Recipes added", Toast.LENGTH_LONG).show()
-        }else{
-            Toast.makeText(this, "Please enter a recipe", Toast.LENGTH_LONG).show()
-        }
-
-    }
-*/
 
 
     fun selectImage(){
@@ -170,10 +144,6 @@ class AddActivity : AppCompatActivity (){
 
         if(imageUri!=null){
 
-           /* progressDialog = ProgressDialog(this)
-            progressDialog.setTitle("Uploading...")
-            progressDialog.show()*/
-
         //imageReference = storageReference.child("uploads/" + imageUri!!.lastPathSegment)
         imageReference = storageReference.child("uploads/"  + getFileExtension(imageUri))
 
@@ -185,14 +155,12 @@ class AddActivity : AppCompatActivity (){
 
            fun onProgress (taskSnapshot: UploadTask.TaskSnapshot){
 
-                val progress: Double = (100.0 * taskSnapshot.bytesTransferred)/taskSnapshot.totalByteCount
-              // progressDialog.setMessage("Uploaded" + progress + "%")
+              //  val progress: Double = (100.0 * taskSnapshot.bytesTransferred)/taskSnapshot.totalByteCount
             }
         }.addOnFailureListener{
 
             @NonNull
             fun onFailure (exception: Exception) {
-               // progressDialog.dismiss()
 
                 Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show()
             }
@@ -203,8 +171,6 @@ class AddActivity : AppCompatActivity (){
                 val newcategory: String = newCategory.text.toString().trim()
                 val newingredients: String = newIngredients.text.toString().trim()
                 val newsteps: String = newSteps.text.toString().trim()
-
-             //   progressDialog.dismiss()
 
                 Toast.makeText(this, "Upload Successful", Toast.LENGTH_LONG).show()
 
@@ -221,30 +187,6 @@ class AddActivity : AppCompatActivity (){
                 databaseReference.child(uploadID).setValue(recipes)
 
                 //uploadRecipe()
-
-
-                //        downloadUrl = taskUrl.result
-
-                //       Picasso.get().load(downloadUrl).noFade().into(newrecipe_image)
-
-                /*    var newImage = newImage.toString()
-                newImage = taskSnapshot.storage.downloadUrl.toString()
-
-                val uploadID: String? = databaseReference.push().key.toString()
-
-                val recipes = Recipes(
-                    newImage
-                )
-
-                if (uploadID != null) {
-                    databaseReference.child(uploadID).setValue(recipes)
-                }
-*/
-                /* val id: String ?= databaseReference.push().key
-            val recipesfull = Recipes(newImage, newTitle, newCategory, newIngredients, newSteps)
-            if (id != null) {
-                databaseReference.child(id).setValue(recipesfull)
-            }*/
 
 
             }

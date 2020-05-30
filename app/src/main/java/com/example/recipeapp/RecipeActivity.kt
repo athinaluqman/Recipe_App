@@ -10,7 +10,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import com.example.recipeapp.model.Recipes
-import com.google.firebase.database.*
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.squareup.picasso.Picasso
@@ -46,6 +47,7 @@ class RecipeActivity : AppCompatActivity() {
         actionBar?.setDisplayHomeAsUpEnabled(true)
         actionBar?.title = "Recipes"
 
+        recipes = Recipes()
 
         firebaseDatabase = FirebaseDatabase.getInstance()
         databaseReference = firebaseDatabase.getReference("Recipes")
@@ -69,7 +71,7 @@ class RecipeActivity : AppCompatActivity() {
             Picasso.get().load(Icon).into(foodimage)
 
             key = bundle.getString("KeyValue").toString()
-          //  imageUrl = bundle.getString("Icon").toString()
+            imageUrl = bundle.getString("Icon").toString()
 
             foodtext.setText(bundle.getString("Name"))
             foodcategory.setText(bundle.getString("Category"))
@@ -128,11 +130,11 @@ class RecipeActivity : AppCompatActivity() {
         // Handle presses on the action bar menu items
         when (item.itemId) {
             R.id.delete -> {
-                // deleteRecipe()
+              //  deleteRecipe()
                 return true
             }
             R.id.update -> {
-                // deleteRecipe()
+               //  updateRecipe()
                 return true
             }
         }
@@ -142,23 +144,50 @@ class RecipeActivity : AppCompatActivity() {
     fun deleteRecipe() {
         databaseReference = firebaseDatabase.getReference("Recipes")
 
-        databaseReference.child(key).removeValue()
+        storageReference = firebaseStorage.getReferenceFromUrl(imageUrl)
 
-        Toast.makeText(this, "Recipe Deleted", Toast.LENGTH_SHORT).show()
-
-        val intent = Intent(applicationContext, MainActivity::class.java)
-        startActivity(intent)
-        finish()
-
-     /*//   firebaseStorage.getReference(imageUrl).delete().addOnSuccessListener {
+       // databaseReference.child(key).removeValue()
+        storageReference.delete().addOnSuccessListener {
+            fun onSuccess (void: Void){
             databaseReference.child(key).removeValue()
-
-            Toast.makeText(this, "Recipe Deleted", Toast.LENGTH_SHORT).show()
-
-            val intent = Intent(applicationContext, MainActivity::class.java)
-            startActivity(intent)
-            finish()*/
+                Toast.makeText(this, "Recipe Deleted", Toast.LENGTH_SHORT).show()
+                val intent = Intent (this, MainActivity::class.java)
+                startActivity(intent)
+                finish()
+            }
         }
+        }
+
+    fun updateRecipe() {
+
+        val intent = Intent(this, UpdateActivity::class.java)
+
+        intent.putExtra("Icon", recipes.icon)
+        intent.putExtra("Name", recipes.name)
+        intent.putExtra("Category", recipes.category)
+        intent.putExtra("Ingredients", recipes.ingredients)
+        intent.putExtra("Steps", recipes.steps)
+        intent.putExtra("KeyValue", recipes.id)
+        startActivity(intent)
+    }
+
+
+}
+
+
+
+
+
+
+
+                /*//   firebaseStorage.getReference(imageUrl).delete().addOnSuccessListener {
+                       databaseReference.child(key).removeValue()
+
+                       Toast.makeText(this, "Recipe Deleted", Toast.LENGTH_SHORT).show()
+
+                       val intent = Intent(applicationContext, MainActivity::class.java)
+                       startActivity(intent)
+                       finish()*/
 
 
         /*  databaseReference.addListenerForSingleValueEvent (object : ValueEventListener {
@@ -175,5 +204,3 @@ class RecipeActivity : AppCompatActivity() {
         })*/
         /* databaseReference.removeValue()
         Toast.makeText(this, "Recipe Deleted", Toast*/
-
-    }
