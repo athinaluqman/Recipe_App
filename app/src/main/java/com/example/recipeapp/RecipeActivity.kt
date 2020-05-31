@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import com.example.recipeapp.model.Recipes
+import com.google.android.gms.tasks.OnSuccessListener
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.storage.FirebaseStorage
@@ -130,7 +131,7 @@ class RecipeActivity : AppCompatActivity() {
         // Handle presses on the action bar menu items
         when (item.itemId) {
             R.id.delete -> {
-              //  deleteRecipe()
+                //deleteRecipe()
                 return true
             }
             R.id.update -> {
@@ -147,15 +148,15 @@ class RecipeActivity : AppCompatActivity() {
         storageReference = firebaseStorage.getReferenceFromUrl(imageUrl)
 
        // databaseReference.child(key).removeValue()
-        storageReference.delete().addOnSuccessListener {
-            fun onSuccess (void: Void){
+        storageReference.delete().addOnSuccessListener(object: OnSuccessListener<Void> {
+            override fun onSuccess (void: Void){
             databaseReference.child(key).removeValue()
-                Toast.makeText(this, "Recipe Deleted", Toast.LENGTH_SHORT).show()
-                val intent = Intent (this, MainActivity::class.java)
+                Toast.makeText(this@RecipeActivity, "Recipe Deleted", Toast.LENGTH_SHORT).show()
+                val intent = Intent (this@RecipeActivity, MainActivity::class.java)
                 startActivity(intent)
                 finish()
             }
-        }
+        })
         }
 
     fun updateRecipe() {

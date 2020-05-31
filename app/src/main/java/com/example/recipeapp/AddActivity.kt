@@ -5,6 +5,7 @@ import android.app.ProgressDialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.View
 import android.webkit.MimeTypeMap
 import android.widget.Button
 import android.widget.EditText
@@ -14,10 +15,14 @@ import androidx.annotation.NonNull
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import com.example.recipeapp.model.Recipes
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.android.gms.tasks.OnFailureListener
+import com.google.android.gms.tasks.OnSuccessListener
 import com.google.android.gms.tasks.Task
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.OnProgressListener
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.UploadTask
 import com.squareup.picasso.Picasso
@@ -38,7 +43,7 @@ class AddActivity : AppCompatActivity (){
     lateinit var databaseReference: DatabaseReference
     lateinit var newImage: ImageView
     private var imageUri: Uri? = null
-    private var downloadUrl: Uri? = null
+    private var downloadUri: Uri? = null
     lateinit var taskUrl: Task<Uri>
     lateinit var uploadTask: UploadTask
     lateinit var newTitle: EditText
@@ -73,12 +78,6 @@ class AddActivity : AppCompatActivity (){
        storageReference = firebaseStorage.getReference("Recipes")
     //    databaseReference.child("Recipes").push().key
 
-        //choosebutton
-        chooseimageButton = findViewById(R.id.button_chooseimage)
-        chooseimageButton.setOnClickListener{
-            selectImage()
-        }
-
         newTitle = findViewById(R.id.newrecipe_name)
         newCategory = findViewById(R.id.newrecipe_category)
         newIngredients = findViewById(R.id.newrecipe_ingredients)
@@ -86,32 +85,10 @@ class AddActivity : AppCompatActivity (){
         newImage = findViewById(R.id.newrecipe_image)
 
 
-        //savebutton
-        saveButton = findViewById(R.id.saveButton)
-        saveButton.setOnClickListener{
-
-            val newTitle: String = ( newTitle.getText().toString().trim())
-            val newCategory: String = newCategory.getText().toString().trim()
-            val newIngredients: String = newIngredients.getText().toString().trim()
-            val newSteps: String = newSteps.getText().toString().trim()
-            var newImage = newImage.toString()
-
-            uploadImage()
-
-            val id: String ?= databaseReference.push().key
-            var recipes = Recipes(id, newImage, newTitle, newCategory, newIngredients, newSteps)
-            if (id != null) {
-                databaseReference.child(id).setValue(recipes)
-            }
-
-            Toast.makeText(this,  "Recipe added", Toast.LENGTH_LONG).show()
-            finish()
-        }
-
     }
 
 
-    fun selectImage(){
+    fun selectImage(view: View){
         val intent =  Intent()
         intent.setType("image/*")
         intent.setAction(Intent.ACTION_GET_CONTENT)
@@ -134,73 +111,79 @@ class AddActivity : AppCompatActivity (){
         }
     }
 
-    fun getFileExtension(uri: Uri?): String? {
+    fun getFileExtension(uri: Uri?): String ?{
         val cR = contentResolver
         val mime = MimeTypeMap.getSingleton()
         return mime.getExtensionFromMimeType(cR.getType(uri!!))
     }
 
+
     fun uploadImage(){
 
-        if(imageUri!=null){
+        imageReference = storageReference.child("uploads/" + imageUri!!.lastPathSegment.toString() + getFileExtension(imageUri).toString())
 
-        //imageReference = storageReference.child("uploads/" + imageUri!!.lastPathSegment)
-        imageReference = storageReference.child("uploads/"  + getFileExtension(imageUri))
+        val progressDialog = ProgressDialog(this)
+        progressDialog.setMessage("Recipe Uploading....")
+        progressDialog.show()
 
         //start upload
         uploadTask = imageReference.putFile(imageUri!!)
 
         //observe state change events
-        uploadTask.addOnProgressListener{
+        uploadTask.addOnSuccessListener (object:OnSuccessListener <UploadTask.TaskSnapshot>{
 
-           fun onProgress (taskSnapshot: UploadTask.TaskSnapshot){
+            override fun onSuccess(taskSnapshot: UploadTask.TaskSnapshot) {
 
-              //  val progress: Double = (100.0 * taskSnapshot.bytesTransferred)/taskSnapshot.totalByteCount
+                Toast.makeText(this@AddActivity, "Upload Successful", Toast.LENGTH_SHORT).show()
+
+                uploadTask.continueWithTask { task ->
+                    if (!task.isSuccessful) {
+                        task.exception?.let {
+                            throw it
+                        }
+                    }
+
+
+                    //get download URL from Firebase Storage
+                    imageReference.downloadUrl.addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            downloadUri = task.getResult()
+                            imageUrl = downloadUri.toString()
+                            Picasso.get().load(imageUrl).into(newrecipe_image)
+                            uploadRecipe()
+                            progressDialog.dismiss()
+                        }else{
+                            Toast.makeText(this@AddActivity, "Failed", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+
             }
-        }.addOnFailureListener{
+
+        }).addOnFailureListener(object:OnFailureListener{
 
             @NonNull
-            fun onFailure (exception: Exception) {
+            override fun onFailure (exception: Exception) {
 
-                Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show()
+                progressDialog.dismiss()
+                Toast.makeText(this@AddActivity, "Error", Toast.LENGTH_SHORT).show()
             }
-        }.addOnSuccessListener {
-            fun onSuccess(taskSnapshot: UploadTask.TaskSnapshot) {
+        }).addOnProgressListener (object:OnProgressListener<UploadTask.TaskSnapshot>{
+            override fun onProgress (taskSnapshot: UploadTask.TaskSnapshot){
 
-                val newtitle: String = newTitle.text.toString().trim()
-                val newcategory: String = newCategory.text.toString().trim()
-                val newingredients: String = newIngredients.text.toString().trim()
-                val newsteps: String = newSteps.text.toString().trim()
-
-                Toast.makeText(this, "Upload Successful", Toast.LENGTH_LONG).show()
-
-                taskUrl = taskSnapshot.storage.downloadUrl
-
-                while (!taskUrl.isComplete)
-                    downloadUrl = taskUrl.getResult()
-                imageUrl = downloadUrl.toString()
-
-                val uploadID: String = databaseReference.push().key.toString()
-
-                var recipes = Recipes(uploadID, imageUrl, newtitle, newcategory, newingredients, newsteps).toString()
-
-                databaseReference.child(uploadID).setValue(recipes)
-
-                //uploadRecipe()
-
-
+                val progress = (100.0 * taskSnapshot.bytesTransferred) / taskSnapshot.totalByteCount
+                progressDialog.incrementProgressBy(progress.toInt())
             }
-        }
-        }
+        })
     }
 
-    /*fun buttonuploadRecipe(view: View){
+    fun buttonuploadRecipe(view: View){
 
         uploadImage()
 
-    }*/
+    }
 
-    /*fun uploadRecipe() {
+    fun uploadRecipe() {
 
         val id: String ?= databaseReference.push().key
 
@@ -214,21 +197,22 @@ class AddActivity : AppCompatActivity (){
         )
 
         if (id != null) {
-            databaseReference.child(id).setValue(recipes).addOnCompleteListener {
+            databaseReference.child(id).setValue(recipes).addOnCompleteListener(object: OnCompleteListener <Void> {
 
-                fun onComplete(task: Task<Void>) {
+                override fun onComplete(task: Task<Void>) {
 
                     if (task.isSuccessful) {
-                        Toast.makeText(this, "Recipe Uploaded", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@AddActivity, "Recipe Uploaded", Toast.LENGTH_SHORT).show()
+
                         finish()
                     }
                 }
-            }.addOnFailureListener{
-                fun onFailure(exception: Exception){
-                    Toast.makeText(this,"Failed", Toast.LENGTH_SHORT).show()
+            }).addOnFailureListener(object:OnFailureListener{
+                override fun onFailure(exception: Exception){
+                    Toast.makeText(this@AddActivity,"Failed", Toast.LENGTH_SHORT).show()
                 }
-            }
+            })
         }
 
-    }*/
+    }
 }
